@@ -2,7 +2,7 @@ namespace PersonalRecipeManger.Models;
 
 public partial class RecipeItems
 {
-    public int AutoId { get; set; }
+    public Guid AutoId { get; set; }
     public Guid RecipeId { get; set; }
     public Guid ItemId { get; set; }
     public double Quantity { get; set; }

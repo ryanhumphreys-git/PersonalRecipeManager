@@ -4,8 +4,18 @@ using PersonalRecipeManger.Models;
 
 namespace PersonalRecipeManger.Services;
 
-public class Database : IDataStore
+public class SqlDatabase : IDataStore
 {
+    /* Would not need with seperate item classes */
+    public Guid GetItemTypeGuid(string itemType)
+    {
+        using var db = new RecipeContext();
+        return db.ItemTypes
+              .Where(i => i.Name == itemType)
+              .Select(i => i.Id)
+              .FirstOrDefault();
+    }
+
    public Entity GetEntity(string name)
    {
         using var db = new RecipeContext();
@@ -15,6 +25,7 @@ public class Database : IDataStore
    public List<RecipeIngredientsDTO> GetRecipeIngredients(string recipeString)
     {
         using var db = new RecipeContext();
+        /* This would be a simpler query with seperate item classes */
         var queryItem = from recipes in db.Recipes
                         join recipeItems in db.RecipeItems on recipes.Id equals recipeItems.RecipeId
                         join items in db.Items on recipeItems.ItemId equals items.Id
@@ -61,9 +72,11 @@ public class Database : IDataStore
     public double GetRecipeCost(Guid nextId)
     {
         using var db = new RecipeContext();
+        /* This would be a simpler query with seperate item classes */
         return (from items in db.Items
                 join recipeItems in db.RecipeItems on items.Id equals recipeItems.ItemId
-                where items.ItemTypeId == 1 && recipeItems.RecipeId == nextId
+                join itemType in db.ItemTypes on items.ItemTypeId equals itemType.Id
+                where itemType.Name == "ingredient" && recipeItems.RecipeId == nextId
                 select items.Cost).Sum();
     }
 
@@ -74,6 +87,7 @@ public class Database : IDataStore
         db.SaveChanges();
     }
 
+    /* Would need functions for each item type with seperate item classes */
     public void InsertNewItem(Item newItem)
     {
         using var db = new RecipeContext();
@@ -93,11 +107,12 @@ public class Database : IDataStore
                 .SetProperty(e => e.KitchenTypeId, newEntity.KitchenTypeId));
     }
 
-    public List<string> SelectItemsOfType(int typeItem)
+    /* This would look different with seperate item classes */
+    public List<string> SelectItemsOfType(string typeItem)
     {
         using var db = new RecipeContext();
         return (from items in db.Items
-                where items.ItemTypeId == typeItem
+                where items.Name == typeItem
                 select items.Name).ToList();
     }
 
