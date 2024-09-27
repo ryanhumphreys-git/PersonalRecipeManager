@@ -5,7 +5,8 @@ public class Program
 {
     static void Main()
     {
-        HandleUserInput handleUserInput = new();
+        
+        HandleUserInput handleUserInput = new(new Database());
         Entity newEntity = null;
 
         Console.WriteLine("Welcome to your recipe manager.");

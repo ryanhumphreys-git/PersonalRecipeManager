@@ -4,7 +4,7 @@ using PersonalRecipeManger.Models;
 
 namespace PersonalRecipeManger.Services;
 
-public class Database
+public class Database : IDataStore
 {
    public Entity GetEntity(string name)
    {

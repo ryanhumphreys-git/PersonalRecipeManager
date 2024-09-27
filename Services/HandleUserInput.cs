@@ -3,11 +3,16 @@ using PersonalRecipeManger.Models;
 namespace PersonalRecipeManger.Services;
 public class HandleUserInput
 {
+    private IDataStore dataStore;
+    public HandleUserInput(IDataStore dataStore)
+    {
+        this.dataStore = dataStore;
+    }
     private Database database = new();
 
     public Entity LoadEntityInformation(string name)
     {
-        return database.GetEntity(name);
+        return dataStore.GetEntity(name);
     }
 
     public Entity HandleUpdate(Entity currentEntity)
