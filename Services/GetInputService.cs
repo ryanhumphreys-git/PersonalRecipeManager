@@ -152,4 +152,32 @@ public class GetInputService
         } while(isNotValid);
     }
 
+    public static void GetInput(string message, out List<string> value)
+    {
+        bool isNotValid;
+        value = new List<string>();
+        do
+        {
+            Console.WriteLine(message);
+            isNotValid = false;
+            try
+            {
+                do
+                {
+                    GetInput("Input an item: (use end to stop adding items)", out string newItem);
+                    if(newItem == "end")
+                    {
+                        break;
+                    }
+                    value.Add(newItem);
+                } while(value.Count < 100);
+            }
+            catch(Exception e)
+            {
+                isNotValid = true;
+                Console.WriteLine($"{e.Message}");
+            }
+        } while(isNotValid);
+    }
+
 }

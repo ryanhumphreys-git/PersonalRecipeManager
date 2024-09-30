@@ -5,8 +5,9 @@ namespace PersonalRecipeManger.DatabaseModels;
 
 public partial class RecipeContext : DbContext
 {
-    public DbSet<Item> Items { get; set; }
-    public DbSet<ItemType> ItemTypes { get; set; }
+    public DbSet<Ingredients> Ingredients { get; set; }
+    public DbSet<Tools> Tools { get; set; }
+    public DbSet<Equipment> Equipment { get; set; }
     public DbSet<KitchenItems> KitchenItems { get; set; }
     public DbSet<KitchenType> KitchenType { get; set; }
     public DbSet<RecipeItems> RecipeItems { get; set; }
@@ -28,15 +29,35 @@ public partial class RecipeContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Item>(entity =>
+        modelBuilder.Entity<Ingredients>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Items__3214EC0754AD72A6");
+            entity.HasKey(e => e.Id).HasName("PK__Ingredie__3214EC0772200186");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UnitOfMeasurement).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Equipment>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Equipmen__3214EC07806D2A8F");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+        });
+
+        modelBuilder.Entity<Tools>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Tools__3214EC07F2EB3AC9");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
         });
 
         modelBuilder.Entity<ItemType>(entity =>

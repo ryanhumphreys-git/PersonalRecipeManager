@@ -26,7 +26,7 @@ public class HandleUserInput
         GetInputService.GetInput("What recipe would you like to view?", out string recipeString);
         var recipeIngredients = dataStore.GetRecipeIngredients(recipeString);
 
-        if (recipeIngredients == null)
+        if (recipeIngredients.Count == 0)
         {
             Console.WriteLine("You don't know that recipe");
             return;
@@ -54,39 +54,49 @@ public class HandleUserInput
 
         GetInputService.GetInput("Enter the difficulty of the recipe (1-10): ", out int newRecipeDifficulty);
         GetInputService.GetInput("Enter the time this recipe takes to make: ", out double newRecipeTime);
-        GetInputService.GetInput("Enter the items then the number needed for the recipe", out Dictionary<string, double> newItems);
-
+        GetInputService.GetInput("Enter the ingredients then the amount needed for the recipe", out Dictionary<string, double> newIngredients);
+        GetInputService.GetInput("Enter the tools and equipment needed for the recipe", out List<string> newTools);
         Guid newRecipeId = Guid.NewGuid();
 
-        dataStore.InsertRecipeItemsFromDictionary(newItems, newRecipeId);
+        dataStore.InsertRecipeIngredientsFromDictionary(newIngredients, newRecipeId);
+        dataStore.InsertRecipeEquipmentAndToolsFromList(newTools, newRecipeId);
         
         double newRecipeCost = dataStore.GetRecipeCost(newRecipeId);
 
-        Recipes newRecipe = new Recipes(Guid.NewGuid(), newRecipeName, newRecipeDifficulty, newRecipeTime, newRecipeCost);
+        Recipes newRecipe = new Recipes(newRecipeId, newRecipeName, newRecipeDifficulty, newRecipeTime, newRecipeCost);
 
         dataStore.InsertNewRecipe(newRecipe);
     }
 
-    public void HandleAddItem()
+    public void HandleAddIngredient()
     {
-        /* Would need 3 options for this to add different items with seperate item classes */
-        GetInputService.GetInput("Enter the name of the item: ", out string newItemName);
-        GetInputService.GetInput("Enter the type of item (ingredient, tool, equipment): ", out string newItemType);
-        GetInputService.GetInput("Enter the cost of the item: ", out double newItemCost);
-        GetInputService.GetInput("Enter the amount of the item you got: ", out double newItemAmount);
-        GetInputService.GetInput("Enter the units associated for the amount (for" +
-         "single objects or things counted one at a time use 'count')", out string newItemUnits);
+        GetInputService.GetInput("Enter the name of the ingredient: ", out string newItemName);
+        GetInputService.GetInput("Enter the cost of the ingredient: ", out double newItemCost);
+        GetInputService.GetInput("Enter the amount of the ingredient you got: ", out double newItemAmount);
+        GetInputService.GetInput("Enter the units associated for the amount ", out string newItemUnits);
 
+        var newItem = new Ingredients(Guid.NewGuid(), newItemName, newItemCost, newItemAmount, newItemUnits);
+        dataStore.InsertNewIngredient(newItem);
+    }
 
-        var newItem = new Item(Guid.NewGuid(), newItemName, newItemCost, newItemAmount,
-                                newItemType switch
-                                {
-                                    "ingredient" => dataStore.GetItemTypeGuid("ingredient"),
-                                    "equipment" => dataStore.GetItemTypeGuid("equipment"),
-                                    "tool" => dataStore.GetItemTypeGuid("tool"),
-                                    _ => throw new ArgumentException("Incorrect type assigned")
-                                }, newItemUnits);
-        dataStore.InsertNewItem(newItem);
+    public void HandleAddTool()
+    {
+        GetInputService.GetInput("Enter the name of the tool: ", out string newItemName);
+        GetInputService.GetInput("Enter the cost of the tool: ", out double newItemCost);
+        GetInputService.GetInput("Enter the amount of the tool you got: ", out double newItemAmount);
+
+        var newItem = new Tools(Guid.NewGuid(), newItemName, newItemCost, newItemAmount);
+        dataStore.InsertNewTool(newItem);
+    }
+
+    public void HandleAddEquipment()
+    {
+        GetInputService.GetInput("Enter the name of the equipment: ", out string newItemName);
+        GetInputService.GetInput("Enter the cost of the equipment: ", out double newItemCost);
+        GetInputService.GetInput("Enter the number of the equipment you got: ", out double newItemAmount);
+
+        var newItem = new Equipment(Guid.NewGuid(), newItemName, newItemCost, newItemAmount);
+        dataStore.InsertNewEquipment(newItem);
     }
 
     public void HandleShow(Entity newEntity)

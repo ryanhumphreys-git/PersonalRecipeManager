@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore;
 using PersonalRecipeManger.DatabaseModels;
 using PersonalRecipeManger.Models;
@@ -6,16 +7,6 @@ namespace PersonalRecipeManger.Services;
 
 public class SqlDatabase : IDataStore
 {
-    /* Would not need with seperate item classes */
-    public Guid GetItemTypeGuid(string itemType)
-    {
-        using var db = new RecipeContext();
-        return db.ItemTypes
-              .Where(i => i.Name == itemType)
-              .Select(i => i.Id)
-              .FirstOrDefault();
-    }
-
    public Entity GetEntity(string name)
    {
         using var db = new RecipeContext();
@@ -25,15 +16,14 @@ public class SqlDatabase : IDataStore
    public List<RecipeIngredientsDTO> GetRecipeIngredients(string recipeString)
     {
         using var db = new RecipeContext();
-        /* This would be a simpler query with seperate item classes */
         var queryItem = from recipes in db.Recipes
                         join recipeItems in db.RecipeItems on recipes.Id equals recipeItems.RecipeId
-                        join items in db.Items on recipeItems.ItemId equals items.Id
+                        join ingredients in db.Ingredients on recipeItems.ItemId equals ingredients.Id
                         where recipes.Name == recipeString
                         select new RecipeIngredientsDTO
                         {
-                            Name = items.Name,
-                            UnitOfMeasurement = items.UnitOfMeasurement,
+                            Name = ingredients.Name,
+                            UnitOfMeasurement = ingredients.UnitOfMeasurement,
                             Quantity = recipeItems.Quantity
                         };
         List<RecipeIngredientsDTO> recipeIngredients = queryItem.ToList();
@@ -48,14 +38,14 @@ public class SqlDatabase : IDataStore
             ?.Name ?? "not found";
     }    
 
-    public void InsertRecipeItemsFromDictionary(Dictionary<string, double> newItems, Guid newRecipeId)
+    public void InsertRecipeIngredientsFromDictionary(Dictionary<string, double> newItems, Guid newRecipeId)
     {
         using var db = new RecipeContext();
         List<Guid> itemIdToAdd = new();
         List<double> itemAmountToAdd = new();
         foreach (var item in newItems)
         {
-            var queryItemId = db.Items.Where(i => i.Name == item.Key).FirstOrDefault().Id;
+            var queryItemId = db.Ingredients.Where(i => i.Name == item.Key).FirstOrDefault().Id;
             
             itemIdToAdd.Add(queryItemId);
             itemAmountToAdd.Add(item.Value);
@@ -69,14 +59,37 @@ public class SqlDatabase : IDataStore
         }
     }
 
+    public void InsertRecipeEquipmentAndToolsFromList(List<string> newEquipment, Guid newRecipeId)
+    {
+        using var db = new RecipeContext();
+        List<Guid> itemIdToAdd = new();
+        foreach (var item in newEquipment)
+        {
+            var queryItemId = db.Equipment
+                .Select(x => new { x.Id, x.Name, x.Cost, x.Quantity})
+                .Union(db.Tools
+                    .Select(x => new { x.Id, x.Name, x.Cost, x.Quantity}))
+                .Where(i => i.Name == item)
+                .FirstOrDefault()
+                .Id;
+            
+            itemIdToAdd.Add(queryItemId);
+        }
+
+        for (int i = 0; i < itemIdToAdd.Count(); i++)
+        {
+            RecipeItems newRecipeItem = new(newRecipeId, itemIdToAdd[i], 1);
+            db.RecipeItems.Add(newRecipeItem);
+            db.SaveChanges();
+        }
+    }
+
     public double GetRecipeCost(Guid nextId)
     {
         using var db = new RecipeContext();
-        /* This would be a simpler query with seperate item classes */
-        return (from items in db.Items
+        return (from items in db.Ingredients
                 join recipeItems in db.RecipeItems on items.Id equals recipeItems.ItemId
-                join itemType in db.ItemTypes on items.ItemTypeId equals itemType.Id
-                where itemType.Name == "ingredient" && recipeItems.RecipeId == nextId
+                where recipeItems.RecipeId == nextId
                 select items.Cost).Sum();
     }
 
@@ -88,10 +101,24 @@ public class SqlDatabase : IDataStore
     }
 
     /* Would need functions for each item type with seperate item classes */
-    public void InsertNewItem(Item newItem)
+    public void InsertNewIngredient(Ingredients newItem)
     {
         using var db = new RecipeContext();
-        db.Items.Add(newItem);
+        db.Ingredients.Add(newItem);
+        db.SaveChanges();
+    }
+
+    public void InsertNewTool(Tools newItem)
+    {
+        using var db = new RecipeContext();
+        db.Tools.Add(newItem);
+        db.SaveChanges();
+    }
+
+    public void InsertNewEquipment(Equipment newItem)
+    {
+        using var db = new RecipeContext();
+        db.Equipment.Add(newItem);
         db.SaveChanges();
     }
 
@@ -107,13 +134,25 @@ public class SqlDatabase : IDataStore
                 .SetProperty(e => e.KitchenTypeId, newEntity.KitchenTypeId));
     }
 
-    /* This would look different with seperate item classes */
     public List<string> SelectItemsOfType(string typeItem)
     {
         using var db = new RecipeContext();
-        return (from items in db.Items
-                where items.Name == typeItem
-                select items.Name).ToList();
+        if(typeItem == "ingredient")
+        {
+            return (from items in db.Ingredients
+                    select items.Name).ToList();
+        }
+        if(typeItem == "tool")
+        {
+            return (from items in db.Tools
+                    select items.Name).ToList();
+        }
+        if(typeItem == "equipment")
+        {
+            return (from items in db.Equipment
+                    select items.Name).ToList();
+        }
+        throw new ArgumentException("Incorrect input (non-user)");
     }
 
     public List<Recipes> SelectCurrentRecipes()

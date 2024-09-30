@@ -50,13 +50,25 @@ public class Program
             {
                 handleUserInput.HandleShowRecipe();
             }
-            if (input == "add item")
+            if (input == "add ingredient")
             {
-                handleUserInput.HandleAddItem();
+                handleUserInput.HandleAddIngredient();
+            }
+            if (input == "add tool")
+            {
+                handleUserInput.HandleAddTool();
+            }
+            if (input == "add equipment")
+            {
+                handleUserInput.HandleAddEquipment();
             }
             if (input == "add recipe")
             {
                 handleUserInput.HandleAddRecipe();
+            }
+            if (input == "help")
+            {
+                ListCommands();
             }
             Console.WriteLine();
         }
@@ -66,7 +78,7 @@ public class Program
     {
         Console.WriteLine("Commands:");
         Console.WriteLine("'show' - brings you to the menu to show recipes, ingredients, tools, equipment");
-        Console.WriteLine("'add <input>' - allows you to add a recipe or item");
+        Console.WriteLine("'add <input>' - allows you to add a recipe, ingredient, tool, or equipment");
         Console.WriteLine("'update' - allows you to re enter your personal information");
         Console.WriteLine("To view commands type 'help'");
     }
