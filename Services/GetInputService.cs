@@ -11,12 +11,12 @@ public class GetInputService
         GetInput("Please enter your cooking skill on a scale from 1-10", out int cookingSkill);
         GetInput("What type of kitchen do you have? (bare, current, dream)", out string kitchenType);
 
-        int kitchen = kitchenType switch
+        Guid kitchen = kitchenType switch
         {
-            "bare" => 1,
-            "current" => 2,
-            "dream" => 3,
-            _ => 0
+            "bare" => new Guid("49DCD928-895E-4C87-85FC-9623A838E361"),
+            "current" => new Guid("5F12AA74-9257-475A-B444-F36A7D551833"),
+            "dream" => new Guid("5F08301D-3693-4A64-86ED-CA941C8494F8"),
+            _ => Guid.NewGuid()
         };
 
         newEntity = new Entity(Guid.NewGuid(), name, age, cookingSkill, kitchen);

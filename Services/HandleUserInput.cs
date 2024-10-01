@@ -75,28 +75,27 @@ public class HandleUserInput
         GetInputService.GetInput("Enter the amount of the ingredient you got: ", out double newItemAmount);
         GetInputService.GetInput("Enter the units associated for the amount ", out string newItemUnits);
 
-        var newItem = new Ingredients(Guid.NewGuid(), newItemName, newItemCost, newItemAmount, newItemUnits);
-        dataStore.InsertNewIngredient(newItem);
+        bool ingredientExists = dataStore.CheckIfIngredientExists(newItemName);
+        if(ingredientExists)
+        {
+            dataStore.UpdateIngredientQuantity(newItemName, newItemAmount);
+        }
+        if(!ingredientExists)
+        {
+            var newItem = new Ingredients(Guid.NewGuid(), newItemName, newItemCost, newItemAmount, newItemUnits);
+            dataStore.InsertNewIngredient(newItem);
+        }
+        
     }
 
-    public void HandleAddTool()
+    public void HandleAddToolOrEquipment()
     {
-        GetInputService.GetInput("Enter the name of the tool: ", out string newItemName);
-        GetInputService.GetInput("Enter the cost of the tool: ", out double newItemCost);
-        GetInputService.GetInput("Enter the amount of the tool you got: ", out double newItemAmount);
+        GetInputService.GetInput("Enter the name of the tool/equipment: ", out string newItemName);
+        GetInputService.GetInput("Enter the cost of the tool/equipment: ", out double newItemCost);
+        GetInputService.GetInput("Enter the amount of the tool/equipment you got: ", out double newItemAmount);
 
-        var newItem = new Tools(Guid.NewGuid(), newItemName, newItemCost, newItemAmount);
-        dataStore.InsertNewTool(newItem);
-    }
-
-    public void HandleAddEquipment()
-    {
-        GetInputService.GetInput("Enter the name of the equipment: ", out string newItemName);
-        GetInputService.GetInput("Enter the cost of the equipment: ", out double newItemCost);
-        GetInputService.GetInput("Enter the number of the equipment you got: ", out double newItemAmount);
-
-        var newItem = new Equipment(Guid.NewGuid(), newItemName, newItemCost, newItemAmount);
-        dataStore.InsertNewEquipment(newItem);
+        var newItem = new ToolsAndEquipment(Guid.NewGuid(), newItemName, newItemCost, newItemAmount);
+        dataStore.InsertNewToolOrEquipment(newItem);
     }
 
     public void HandleShow(Entity newEntity)
@@ -116,10 +115,10 @@ public class HandleUserInput
             }
             else
             {
-                string typeItem = showString switch
+                string typeItem = showString.ToLower() switch
                 {
-                    "ingredients" => "ingredient",
-                    "tools" => "tool",
+                    "ingredients" or "i" => "ingredient",
+                    "tools" or "tool" => "tool",
                     "equipment" => "equipment",
                     _ => throw new ArgumentException("Please input 'ingredients', 'tools', or 'equipment")
                 };

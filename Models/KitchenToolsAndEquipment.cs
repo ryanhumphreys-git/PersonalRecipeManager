@@ -1,6 +1,6 @@
 namespace PersonalRecipeManger.Models;
 
-public partial class KitchenItems
+public partial class KitchenToolsAndEquipment
 {
     public Guid AutoId { get; set; }
     public Guid KitchenId { get; set; }

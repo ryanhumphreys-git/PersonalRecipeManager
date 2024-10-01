@@ -54,13 +54,9 @@ public class Program
             {
                 handleUserInput.HandleAddIngredient();
             }
-            if (input == "add tool")
+            if (input == "add tool" || input == "add equipment")
             {
-                handleUserInput.HandleAddTool();
-            }
-            if (input == "add equipment")
-            {
-                handleUserInput.HandleAddEquipment();
+                handleUserInput.HandleAddToolOrEquipment();
             }
             if (input == "add recipe")
             {

@@ -6,11 +6,12 @@ namespace PersonalRecipeManger.DatabaseModels;
 public partial class RecipeContext : DbContext
 {
     public DbSet<Ingredients> Ingredients { get; set; }
-    public DbSet<Tools> Tools { get; set; }
-    public DbSet<Equipment> Equipment { get; set; }
-    public DbSet<KitchenItems> KitchenItems { get; set; }
+    public DbSet<ToolsAndEquipment> ToolsAndEquipment { get; set; }
+    public DbSet<KitchenIngredients> KitchenIngredients { get; set; }
+    public DbSet<KitchenToolsAndEquipment> KitchenToolsAndEquipment { get; set; }
     public DbSet<KitchenType> KitchenType { get; set; }
-    public DbSet<RecipeItems> RecipeItems { get; set; }
+    public DbSet<RecipeIngredients> RecipeIngredients { get; set; }
+    public DbSet<RecipeToolsAndEquipment> RecipeToolsAndEquipment { get; set; }
     public DbSet<Recipes> Recipes { get; set; }
     public DbSet<Entity> Entity { get; set; }
 
@@ -40,19 +41,9 @@ public partial class RecipeContext : DbContext
             entity.Property(e => e.UnitOfMeasurement).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Equipment>(entity =>
+        modelBuilder.Entity<ToolsAndEquipment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Equipmen__3214EC07806D2A8F");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
-            entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
-        });
-
-        modelBuilder.Entity<Tools>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Tools__3214EC07F2EB3AC9");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
@@ -71,11 +62,21 @@ public partial class RecipeContext : DbContext
                 .HasMaxLength(50);
         });
 
-        modelBuilder.Entity<KitchenItems>(entity =>
+        modelBuilder.Entity<KitchenIngredients>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK__KitchenI__6B2329058C7E0B10");
+            entity.HasKey(e => e.AutoId).HasName("PK__KitchenI__6B2329058B1AE66A");
 
-            entity.ToTable("Kitchen");
+            entity.ToTable("KitchenIngredients");
+
+            entity.Property(e => e.AutoId).ValueGeneratedNever();
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+        });
+
+        modelBuilder.Entity<KitchenToolsAndEquipment>(entity =>
+        {
+            entity.HasKey(e => e.AutoId).HasName("PK__KitchenT__6B232905AA4950B5");
+
+            entity.ToTable("KitchenToolsAndEquipment");
 
             entity.Property(e => e.AutoId).ValueGeneratedNever();
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
@@ -91,9 +92,17 @@ public partial class RecipeContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<RecipeItems>(entity =>
+        modelBuilder.Entity<RecipeIngredients>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK__RecipeIt__6B232905D307F9E5");
+            entity.HasKey(e => e.AutoId).HasName("PK__RecipeIn__6B232905C9FA5D74");
+
+            entity.Property(e => e.AutoId).ValueGeneratedOnAdd();
+            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+        });
+
+        modelBuilder.Entity<RecipeToolsAndEquipment>(entity =>
+        {
+            entity.HasKey(e => e.AutoId).HasName("PK__RecipeTo__6B232905A760B805");
 
             entity.Property(e => e.AutoId).ValueGeneratedOnAdd();
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
