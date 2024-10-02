@@ -58,8 +58,20 @@ public class HandleUserInput
         GetInputService.GetInput("Enter the tools and equipment needed for the recipe", out List<string> newTools);
         Guid newRecipeId = Guid.NewGuid();
 
-        dataStore.InsertRecipeIngredientsFromDictionary(newIngredients, newRecipeId);
-        dataStore.InsertRecipeEquipmentAndToolsFromList(newTools, newRecipeId);
+        foreach(var item in newIngredients)
+        {
+            Guid itemGuid = dataStore.GetIngredientByName(item.Key).Id;
+            double itemAmount = item.Value;
+            RecipeIngredients newRecipeItem = new(newRecipeId, itemGuid, itemAmount);
+            dataStore.InsertRecipeIngredient(newRecipeItem);
+        }
+
+        foreach(string item in newTools)
+        {
+            Guid itemGuid = dataStore.GetToolsAndEquipmentByName(item).Id;
+            RecipeToolsAndEquipment newToolsOrEquipment = new(newRecipeId, itemGuid, 1);
+            dataStore.InsertRecipeEquipmentOrTools(newToolsOrEquipment);
+        }
         
         double newRecipeCost = dataStore.GetRecipeCost(newRecipeId);
 
@@ -68,24 +80,37 @@ public class HandleUserInput
         dataStore.InsertNewRecipe(newRecipe);
     }
 
-    public void HandleAddIngredient()
+    public void HandleAddIngredient(Entity newEntity)
     {
         GetInputService.GetInput("Enter the name of the ingredient: ", out string newItemName);
         GetInputService.GetInput("Enter the cost of the ingredient: ", out double newItemCost);
         GetInputService.GetInput("Enter the amount of the ingredient you got: ", out double newItemAmount);
         GetInputService.GetInput("Enter the units associated for the amount ", out string newItemUnits);
 
-        bool ingredientExists = dataStore.CheckIfIngredientExists(newItemName);
+        Guid newIngredientId = Guid.NewGuid();
+        Ingredients newIngredient = new Ingredients(newIngredientId, newItemName, newItemCost, newItemUnits);
+        KitchenIngredients newKitchenIngredient = new KitchenIngredients(Guid.NewGuid(), newEntity.KitchenTypeId, newIngredientId, newItemAmount);
+        bool ingredientExists = dataStore.CheckIfIngredientExists(newIngredient);
         if(ingredientExists)
         {
-            dataStore.UpdateIngredientQuantity(newItemName, newItemAmount);
+            Ingredients currentIngredientInfo = dataStore.GetIngredientByName(newItemName);
+            KitchenIngredients currentKitchenIngredient = dataStore.GetKitchenIngredientById(currentIngredientInfo.Id);
+
+            currentKitchenIngredient.Quantity += newItemAmount;
+            dataStore.UpdateKitchenIngredientQuantity(currentKitchenIngredient);
+
+            if(currentIngredientInfo.Cost - newItemCost != 0 || currentIngredientInfo.UnitOfMeasurement != newItemUnits)
+            {
+                currentIngredientInfo.Cost = newItemCost;
+                currentIngredientInfo.UnitOfMeasurement = newItemUnits;
+                dataStore.UpdateIngredientProperties(currentIngredientInfo);
+            }
         }
         if(!ingredientExists)
         {
-            var newItem = new Ingredients(Guid.NewGuid(), newItemName, newItemCost, newItemAmount, newItemUnits);
-            dataStore.InsertNewIngredient(newItem);
+            dataStore.InsertNewIngredient(newIngredient);
+            dataStore.InsertNewKitchenIngredient(newKitchenIngredient);
         }
-        
     }
 
     public void HandleAddToolOrEquipment()
@@ -94,7 +119,7 @@ public class HandleUserInput
         GetInputService.GetInput("Enter the cost of the tool/equipment: ", out double newItemCost);
         GetInputService.GetInput("Enter the amount of the tool/equipment you got: ", out double newItemAmount);
 
-        var newItem = new ToolsAndEquipment(Guid.NewGuid(), newItemName, newItemCost, newItemAmount);
+        var newItem = new ToolsAndEquipment(Guid.NewGuid(), newItemName, newItemCost);
         dataStore.InsertNewToolOrEquipment(newItem);
     }
 
@@ -104,29 +129,31 @@ public class HandleUserInput
 
         try
         {
-            if (showString == "recipes")
+            if (showString.ToLower() == "recipes")
             {
-                newEntity.RecipeList = dataStore.SelectCurrentRecipes();
+                newEntity.RecipeList = dataStore.SelectAllKnownRecipes();
                 Console.WriteLine("You have recipes for: ");
                 foreach (Recipes item in newEntity.RecipeList)
                 {
                     Console.WriteLine($"{item.Name}");
                 }
             }
-            else
+            if (showString.ToLower() == "ingredients")
             {
-                string typeItem = showString.ToLower() switch
+                var ingredientList = dataStore.SelectAllIngredients();
+                Console.WriteLine("You have the ingredients: ");
+                foreach (Ingredients item in ingredientList)
                 {
-                    "ingredients" or "i" => "ingredient",
-                    "tools" or "tool" => "tool",
-                    "equipment" => "equipment",
-                    _ => throw new ArgumentException("Please input 'ingredients', 'tools', or 'equipment")
-                };
-                var itemList = dataStore.SelectItemsOfType(typeItem);
-                Console.WriteLine($"You have the {showString}: ");
-                foreach (string item in itemList)
+                    Console.WriteLine($"{item.Name}");
+                }
+            }
+            if (showString.ToLower() == "tools" || showString.ToLower() == "equipment")
+            {
+                var equipmentAndToolList = dataStore.SelectAllToolsAndEquipment();
+                Console.WriteLine("You have the tools and equipment: ");
+                foreach (ToolsAndEquipment item in equipmentAndToolList)
                 {
-                    Console.WriteLine($"{item}");
+                    Console.WriteLine($"{item.Name}");
                 }
             }
         }

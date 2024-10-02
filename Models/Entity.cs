@@ -9,9 +9,9 @@ public class Entity
     public int CookingSkill { get; set; }
     public Guid KitchenTypeId { get; set; }
     [NotMapped]
-    public Kitchen EntityKitchen { get; set; }
+    public Kitchen EntityKitchen { get; set; } = new();
     [NotMapped]
-    public ShoppingList EntityShoppingList { get; set; }
+    public ShoppingList EntityShoppingList { get; set; } = new();
     [NotMapped]
     public List<Recipes> RecipeList { get; set; } = new();
 

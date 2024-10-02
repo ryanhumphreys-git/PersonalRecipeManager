@@ -7,18 +7,28 @@ namespace PersonalRecipeManger.Services;
 
 public class SqlDatabase : IDataStore
 {
+    // GETS
    public Entity GetEntity(string name)
    {
         using var db = new RecipeContext();
         return db.Entity.Where(e => e.Name == name).FirstOrDefault();
    }
 
+   public double GetRecipeCost(Guid nextId)
+    {
+        using var db = new RecipeContext();
+        return (from i in db.Ingredients
+                join ri in db.RecipeIngredients on i.Id equals ri.IngredientId
+                where ri.RecipeId == nextId
+                select i.Cost).Sum();
+    }
+
    public List<RecipeIngredientsDTO> GetRecipeIngredients(string recipeString)
     {
         using var db = new RecipeContext();
         var queryItem = from r in db.Recipes
                         join ri in db.RecipeIngredients on r.Id equals ri.RecipeId
-                        join i in db.Ingredients on ri.ItemId equals i.Id
+                        join i in db.Ingredients on ri.IngredientId equals i.Id
                         where r.Name == recipeString
                         select new RecipeIngredientsDTO
                         {
@@ -30,6 +40,29 @@ public class SqlDatabase : IDataStore
         return recipeIngredients;
     }
 
+    public Ingredients GetIngredientByName(string ingredientName)
+    {
+        using var db = new RecipeContext();
+        return db.Ingredients
+            .FirstOrDefault(i => i.Name == ingredientName);
+    }
+
+    public KitchenIngredients GetKitchenIngredientById(Guid ingredientId)
+    {
+        using var db = new RecipeContext();
+        return db.KitchenIngredients
+            .FirstOrDefault(ki => ki.IngredientId == ingredientId);
+    }
+
+    public ToolsAndEquipment GetToolsAndEquipmentByName(string toolName)
+    {
+        using var db = new RecipeContext();
+        return db.ToolsAndEquipment
+            .FirstOrDefault(te => te.Name == toolName);
+    }
+
+
+    // CHECKS
     public string CheckIfRecipeExists(string recipeName)
     {
         using var db = new RecipeContext();
@@ -38,73 +71,26 @@ public class SqlDatabase : IDataStore
             ?.Name ?? "not found";
     }    
 
-    public bool CheckIfIngredientExists(string ingredientName)
+    public bool CheckIfIngredientExists(Ingredients ingredients)
     {
         using var db = new RecipeContext();
-        string ingredient =  (from ki in db.KitchenIngredients
-                            join i in db.Ingredients on ki.ItemId equals i.Id
-                            where i.Name == ingredientName
-                            select i.Name).ToString() ?? "not found";
-        if(ingredient != "not found")
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return db.Ingredients
+                .Any(ki => ki.Name == ingredients.Name);
     } 
 
-    public void InsertRecipeIngredientsFromDictionary(Dictionary<string, double> newItems, Guid newRecipeId)
+    // INSERTS
+    public void InsertRecipeIngredient(RecipeIngredients newRecipeItem)
     {
         using var db = new RecipeContext();
-        List<Guid> itemIdToAdd = new();
-        List<double> itemAmountToAdd = new();
-        foreach (var item in newItems)
-        {
-            var queryItemId = db.Ingredients.Where(i => i.Name == item.Key).FirstOrDefault().Id;
-            
-            itemIdToAdd.Add(queryItemId);
-            itemAmountToAdd.Add(item.Value);
-        }
-
-        for (int i = 0; i < itemIdToAdd.Count(); i++)
-        {
-            RecipeIngredients newRecipeItem = new(newRecipeId, itemIdToAdd[i], itemAmountToAdd[i]);
-            db.RecipeIngredients.Add(newRecipeItem);
-            db.SaveChanges();
-        }
+        db.RecipeIngredients.Add(newRecipeItem);
+        db.SaveChanges();
     }
 
-    public void InsertRecipeEquipmentAndToolsFromList(List<string> newEquipment, Guid newRecipeId)
+    public void InsertRecipeEquipmentOrTools(RecipeToolsAndEquipment newToolOrEquipment)
     {
         using var db = new RecipeContext();
-        List<Guid> itemIdToAdd = new();
-        foreach (var item in newEquipment)
-        {
-            var queryItemId = db.ToolsAndEquipment
-                .Where(i => i.Name == item)
-                .FirstOrDefault()
-                .Id;
-            
-            itemIdToAdd.Add(queryItemId);
-        }
-
-        for (int i = 0; i < itemIdToAdd.Count(); i++)
-        {
-            RecipeToolsAndEquipment newRecipeItem = new(newRecipeId, itemIdToAdd[i], 1);
-            db.RecipeToolsAndEquipment.Add(newRecipeItem);
+        db.RecipeToolsAndEquipment.Add(newToolOrEquipment);
             db.SaveChanges();
-        }
-    }
-
-    public double GetRecipeCost(Guid nextId)
-    {
-        using var db = new RecipeContext();
-        return (from i in db.Ingredients
-                join ri in db.RecipeIngredients on i.Id equals ri.ItemId
-                where ri.RecipeId == nextId
-                select i.Cost).Sum();
     }
 
     public void InsertNewRecipe(Recipes newRecipe)
@@ -114,24 +100,17 @@ public class SqlDatabase : IDataStore
         db.SaveChanges();
     }
 
-    /* Would need functions for each item type with seperate item classes */
-    public void InsertNewIngredient(Ingredients newItem)
+    public void InsertNewIngredient(Ingredients newIngredient)
     {
         using var db = new RecipeContext();
-        db.Ingredients.Add(newItem);
-        var currentKitchen = db.Entity.Single(e => e.Name == "Ryan").KitchenTypeId;
-        db.KitchenIngredients.Add(new KitchenIngredients(Guid.NewGuid(), currentKitchen, newItem.Id, newItem.Quantity));
+        db.Ingredients.Add(newIngredient);
         db.SaveChanges();
     }
 
-    public void UpdateIngredientQuantity(string name, double quantity)
+    public void InsertNewKitchenIngredient(KitchenIngredients newIngredient)
     {
         using var db = new RecipeContext();
-        Guid ingredientId = GetIngredientId(name);
-        var ingredient = db.KitchenIngredients.SingleOrDefault(ki => ki.ItemId == ingredientId);
-        ingredient.Quantity += quantity;
-        var ingredientTab = db.Ingredients.SingleOrDefault(i => i.Id == ingredientId);
-        ingredientTab.Quantity += quantity;
+        db.KitchenIngredients.Add(newIngredient);
         db.SaveChanges();
     }
 
@@ -140,6 +119,33 @@ public class SqlDatabase : IDataStore
         using var db = new RecipeContext();
         db.ToolsAndEquipment.Add(newItem);
         db.SaveChanges();
+    }
+
+    public void InsertKitchenNewToolOrEquipment(KitchenToolsAndEquipment newToolOrEquipment)
+    {
+        using var db = new RecipeContext();
+        db.KitchenToolsAndEquipment.Add(newToolOrEquipment);
+        db.SaveChanges();
+    }
+
+    // UPDATES
+    public void UpdateKitchenIngredientQuantity(KitchenIngredients newIngredient)
+    {
+        using var db = new RecipeContext();
+        db.KitchenIngredients
+            .Where(ki => ki.IngredientId == newIngredient.IngredientId)
+            .ExecuteUpdate(setters => setters
+                .SetProperty(ki => ki.Quantity, newIngredient.Quantity));
+    }
+
+    public void UpdateIngredientProperties(Ingredients newIngredient)
+    {
+        using var db = new RecipeContext();
+        db.Ingredients
+            .Where(i => i.Id == newIngredient.Id)
+            .ExecuteUpdate(setters => setters
+                .SetProperty(i => i.Cost, newIngredient.Cost)
+                .SetProperty(i => i.UnitOfMeasurement, newIngredient.UnitOfMeasurement));
     }
 
     public void UpdateEntityInformation(Entity newEntity, Guid id)
@@ -154,34 +160,22 @@ public class SqlDatabase : IDataStore
                 .SetProperty(e => e.KitchenTypeId, newEntity.KitchenTypeId));
     }
 
-    public List<string> SelectItemsOfType(string typeItem)
+    // SELECTS
+    public List<Ingredients> SelectAllIngredients()
     {
         using var db = new RecipeContext();
-        if(typeItem == "ingredient")
-        {
-            return (from items in db.Ingredients
-                    select items.Name).ToList();
-        }
-        if(typeItem == "tool" || typeItem == "equipment")
-        {
-            return (from items in db.ToolsAndEquipment
-                    select items.Name).ToList();
-        }
-        throw new ArgumentException("Incorrect input (non-user)");
+        return db.Ingredients.ToList();
     }
 
-    public List<Recipes> SelectCurrentRecipes()
+    public List<ToolsAndEquipment> SelectAllToolsAndEquipment()
+    {
+        using var db = new RecipeContext();
+        return db.ToolsAndEquipment.ToList();
+    }
+
+    public List<Recipes> SelectAllKnownRecipes()
     {
         using var db = new RecipeContext();
         return db.Recipes.ToList();
     }
-
-    public Guid GetIngredientId(string ingredientName)
-    {
-        using var db = new RecipeContext();
-        return db.Ingredients
-            .FirstOrDefault(i => i.Name == ingredientName)
-            .Id;
-    }
-
 }
