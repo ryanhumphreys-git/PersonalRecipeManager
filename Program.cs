@@ -52,7 +52,7 @@ public class Program
             }
             if (input == "add ingredient")
             {
-                handleUserInput.HandleAddIngredient();
+                handleUserInput.HandleAddIngredient(newEntity);
             }
             if (input == "add tool" || input == "add equipment")
             {

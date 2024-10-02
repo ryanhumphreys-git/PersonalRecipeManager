@@ -37,29 +37,16 @@ public partial class RecipeContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UnitOfMeasurement).HasMaxLength(50);
         });
 
         modelBuilder.Entity<ToolsAndEquipment>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Equipmen__3214EC07806D2A8F");
+            entity.HasKey(e => e.Id).HasName("PK__ToolsAnd__3214EC07EE62D0B3");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
-        });
-
-        modelBuilder.Entity<ItemType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__ItemType__3214EC073D328CE6");
-
-            entity.ToTable("ItemType");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.Name)
-                .HasMaxLength(50);
         });
 
         modelBuilder.Entity<KitchenIngredients>(entity =>
@@ -70,6 +57,14 @@ public partial class RecipeContext : DbContext
 
             entity.Property(e => e.AutoId).ValueGeneratedNever();
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+
+            entity.HasOne(d => d.Ingredient).WithMany(p => p.KitchenIngredients)
+                .HasForeignKey(d => d.IngredientId)
+                .HasConstraintName("FK_KitchenIngredients_Ingredients");
+
+            entity.HasOne(d => d.Kitchen).WithMany(p => p.KitchenIngredients)
+                .HasForeignKey(d => d.KitchenId)
+                .HasConstraintName("FK_KitchenIngredients_KitchenType");
         });
 
         modelBuilder.Entity<KitchenToolsAndEquipment>(entity =>
@@ -80,6 +75,14 @@ public partial class RecipeContext : DbContext
 
             entity.Property(e => e.AutoId).ValueGeneratedNever();
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+
+            entity.HasOne(d => d.Kitchen).WithMany(p => p.KitchenToolsAndEquipments)
+                .HasForeignKey(d => d.KitchenId)
+                .HasConstraintName("FK_KitchenToolsAndEquipment_KitchenType");
+
+            entity.HasOne(d => d.ToolsAndEquipment).WithMany(p => p.KitchenToolsAndEquipments)
+                .HasForeignKey(d => d.ToolsAndEquipmentId)
+                .HasConstraintName("FK_KitchenToolsAndEquipment_ToolsAndEquipment");
         });
 
         modelBuilder.Entity<KitchenType>(entity =>
@@ -98,6 +101,15 @@ public partial class RecipeContext : DbContext
 
             entity.Property(e => e.AutoId).ValueGeneratedOnAdd();
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.UnitOfMeasurement).HasMaxLength(50);
+
+            entity.HasOne(d => d.Ingredient).WithMany(p => p.RecipeIngredients)
+                .HasForeignKey(d => d.IngredientId)
+                .HasConstraintName("FK_RecipeIngredients_Ingredients");
+
+            entity.HasOne(d => d.Recipes).WithMany(p => p.RecipeIngredients)
+                .HasForeignKey(d => d.RecipeId)
+                .HasConstraintName("FK_RecipeIngredients_Recipes");
         });
 
         modelBuilder.Entity<RecipeToolsAndEquipment>(entity =>
@@ -106,11 +118,19 @@ public partial class RecipeContext : DbContext
 
             entity.Property(e => e.AutoId).ValueGeneratedOnAdd();
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 0)");
+
+            entity.HasOne(d => d.Recipe).WithMany(p => p.RecipeToolsAndEquipments)
+                .HasForeignKey(d => d.RecipeId)
+                .HasConstraintName("FK_RecipeToolsAndEquipment_Recipes");
+
+            entity.HasOne(d => d.ToolsAndEquipment).WithMany(p => p.RecipeToolsAndEquipments)
+                .HasForeignKey(d => d.ToolsAndEquipmentId)
+                .HasConstraintName("FK_RecipeToolsAndEquipment_ToolsAndEquipment");
         });
 
         modelBuilder.Entity<Recipes>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Recipes__3214EC0770AFB77E");
+            entity.HasKey(e => e.Id).HasName("PK__Recipes__3214EC07AB5C1B61");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Cost).HasColumnType("decimal(18, 0)");

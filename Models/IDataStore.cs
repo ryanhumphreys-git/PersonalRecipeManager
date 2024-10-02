@@ -2,19 +2,34 @@ namespace PersonalRecipeManger.Models;
 
 public interface IDataStore
 {
+    // GETS
     public Entity GetEntity(string name);
-    public List<RecipeIngredientsDTO> GetRecipeIngredients(string recipeString);
-    public Guid GetIngredientId(string ingredientName);
-    public string CheckIfRecipeExists(string recipeName);
-    public bool CheckIfIngredientExists(string ingredientName);
-    public void InsertRecipeIngredientsFromDictionary(Dictionary<string, double> newItems, Guid newRecipeId);
-    public void InsertRecipeEquipmentAndToolsFromList(List<string> newEquipment, Guid newRecipeId);
     public double GetRecipeCost(Guid nextId);
+    public List<RecipeIngredientsDTO> GetRecipeIngredients(string recipeString);
+    public Ingredients GetIngredientByName(string ingredientName);
+    public KitchenIngredients GetKitchenIngredientById(Guid ingredientName);
+    public ToolsAndEquipment GetToolsAndEquipmentByName(string toolName);
+
+    // CHECKS
+    public string CheckIfRecipeExists(string recipeName);
+    public bool CheckIfIngredientExists(Ingredients ingredient);
+
+    // INSERTS
+    public void InsertRecipeIngredient(RecipeIngredients newRecipeItem);
+    public void InsertRecipeEquipmentOrTools(RecipeToolsAndEquipment newToolOrEquipment);
     public void InsertNewRecipe(Recipes newRecipe);
     public void InsertNewIngredient(Ingredients newItem);
-    public void UpdateIngredientQuantity(string name, double quantity);
-   public void InsertNewToolOrEquipment(ToolsAndEquipment newItem);
+    public void InsertNewKitchenIngredient(KitchenIngredients newIngredient);
+    public void InsertNewToolOrEquipment(ToolsAndEquipment newItem);
+    public void InsertKitchenNewToolOrEquipment(KitchenToolsAndEquipment newItem);
+
+    // UPDATES
+    public void UpdateKitchenIngredientQuantity(KitchenIngredients newIngredient);
+    public void UpdateIngredientProperties(Ingredients newIngredient);
     public void UpdateEntityInformation(Entity newEntity, Guid id);
-    public List<string> SelectItemsOfType(string typeItem);
-    public List<Recipes> SelectCurrentRecipes();
+
+    // SELECTS
+    public List<Ingredients> SelectAllIngredients();
+    public List<ToolsAndEquipment> SelectAllToolsAndEquipment();
+    public List<Recipes> SelectAllKnownRecipes();
 }
