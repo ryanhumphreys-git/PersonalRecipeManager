@@ -63,12 +63,11 @@ public class SqlDatabase : IDataStore
 
 
     // CHECKS
-    public string CheckIfRecipeExists(string recipeName)
+    public bool CheckIfRecipeExists(string recipeName)
     {
         using var db = new RecipeContext();
         return db.Recipes
-            .FirstOrDefault(r => r.Name == recipeName)
-            ?.Name ?? "not found";
+            .Any(r => r.Name == recipeName);
     }    
 
     public bool CheckIfIngredientExists(Ingredients ingredients)
@@ -96,7 +95,7 @@ public class SqlDatabase : IDataStore
     public void InsertNewRecipe(Recipes newRecipe)
     {
         using var db = new RecipeContext();
-        db.Add(newRecipe);
+        db.Recipes.Add(newRecipe);
         db.SaveChanges();
     }
 
