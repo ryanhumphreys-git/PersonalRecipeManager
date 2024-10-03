@@ -18,7 +18,12 @@ public partial class RecipeContext : DbContext
     // The following configures EF to create a SqlServer database file in the
     // special "local" folder for your platform.
     protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlServer(@"Server=SPARK-DEV-RTH;Database=RecipeManager;Trusted_Connection=True;Encrypt=False;");
+    {
+        options.UseSqlServer(@"Server=SPARK-DEV-RTH;Database=RecipeManager;Trusted_Connection=True;Encrypt=False;");
+        options.EnableDetailedErrors();
+        options.LogTo(Console.WriteLine);
+    }
+        
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

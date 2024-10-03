@@ -11,7 +11,7 @@ public interface IDataStore
     public ToolsAndEquipment GetToolsAndEquipmentByName(string toolName);
 
     // CHECKS
-    public string CheckIfRecipeExists(string recipeName);
+    public bool CheckIfRecipeExists(string recipeName);
     public bool CheckIfIngredientExists(Ingredients ingredient);
 
     // INSERTS

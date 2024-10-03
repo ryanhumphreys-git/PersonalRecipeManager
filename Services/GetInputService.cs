@@ -114,6 +114,44 @@ public class GetInputService
         } while (isNotValid);
     }
 
+    public static void GetInput(string message, out List<(string, double, string)> value)
+    {
+        bool isNotValid;
+        value = new List<(string ingredient, double amount, string units)>();
+        do
+        {
+            Console.WriteLine(message);
+            isNotValid = false;
+            try
+            {
+                List<string> ingredientList = new();
+                List<double> amountList = new();
+                List<string> unitsList = new();
+                do
+                {
+                    GetInput("Input an item: (use end to stop adding ingredients)", out string newIngredient);
+                    if(newIngredient == "end")
+                    {
+                        break;
+                    }
+
+                    GetInput("How much of that item do you need: ", out double amount);
+
+                    GetInput("Input the units to measure the amount: ", out string units);
+
+                    (string, double, string) ingredientsTuple = (newIngredient, amount, units);
+
+                    value.Add(ingredientsTuple);
+
+                } while(ingredientList.Count < 100);
+            }
+            catch(Exception e)
+            {
+                isNotValid = true;
+                Console.WriteLine($"{e.Message}");
+            }
+        } while(isNotValid);
+    }
     public static void GetInput(string message, out Dictionary<string, double> value)
     {
         bool isNotValid;
